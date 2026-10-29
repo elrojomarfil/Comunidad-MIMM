@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIMM - Bolsa de Trabajo y Red de Colaboración</title>
+    <style>
+        :root {
+            --primary: #1b4332;
+            --secondary: #2d6a4f;
+            --accent: #d8f3dc;
+            --bg: #f4f6f8;
+            --text: #212529;
+            --card-bg: #ffffff;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 12px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+        }
+        h2 {
+            color: var(--primary);
+            text-align: center;
+            font-size: 1.3rem;
+            margin-bottom: 2px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 0.8rem;
+            margin-bottom: 20px;
+        }
+        /* Sistema de pestañas */
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 20px;
+            background: #e9ecef;
+            padding: 4px;
+            border-radius: 8px;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: #495057;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        /* Listado de avisos */
+        .listing-card {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-left: 4px solid var(--secondary);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+        .listing-title {
+            font-weight: bold;
+            color: var(--primary);
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
+        .listing-meta {
+            font-size: 0.75rem;
+            color: #666;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .listing-desc {
+            font-size: 0.85rem;
+            color: #444;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+        .wa-btn {
+            display: inline-block;
+            background-color: #25d366;
+            color: white;
+            text-decoration: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        .wa-btn:hover {
+            background-color: #1ebe57;
+        }
+        .empty-state, .loading-state {
+            text-align: center;
+            padding: 30px 20px;
+            color: #666;
+            font-size: 0.9rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px dashed #ccc;
+        }
+        /* Formulario */
+        .group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 0.85rem;
+            color: #444;
+        }
+        select, input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            box-sizing: border-box;
+            background: #fff;
+        }
+        textarea {
+            resize: vertical;
+            height: 80px;
+        }
+        button.action-btn {
+            width: 100%;
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        button.action-btn:hover {
+            background-color: var(--primary);
+        }
+        button.action-btn:disabled {
+            background-color: #94d2bd;
+            cursor: not-allowed;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.75rem;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="card">
+        <h2>MIMM - Bolsa de Trabajo</h2>
+        <div class="subtitle">Red de colaboración y convocatorias musicales de Mendoza</div>
+
+        <!-- Botones de Pestañas -->
+        <div class="tabs">
+            <button class="tab-btn active" type="button" onclick="cambiarPestana('ver')">📋 Ver Avisos</button>
+            <button class="tab-btn" type="button" onclick="cambiarPestana('publicar')">➕ Publicar Aviso</button>
+        </div>
+
+        <!-- PESTAÑA 1: VER AVISOS -->
+        <div id="pestana-ver" class="tab-content active">
+            
+            <div class="group">
+                <label for="filtroCategoria">Filtrar por categoría:</label>
+                <select id="filtroCategoria" onchange="filtrarAvisos()">
+                    <option value="todos">Todas las categorías</option>
+                    <option value="banda">Buscan Músico / Integrante</option>
+                    <option value="sesionista">Sesionistas y Grabación</option>
+                    <option value="tecnico">Técnicos / Sonido / Iluminación</option>
+                    <option value="ofrezco">Ofrezco Servicios / Clases</option>
+                </select>
+            </div>
+
+            <div id="contenedorAvisos">
+                <div class="loading-state" id="estadoCargando">
+                    🔄 Conectando con la base de datos del MIMM...
+                </div>
+            </div>
+
+        </div>
+
+        <!-- PESTAÑA 2: PUBLICAR AVISO -->
+        <div id="pestana-publicar" class="tab-content">
+            <form id="formAviso" onsubmit="publicarAviso(event)">
+                <div class="group">
+                    <label for="tituloAviso">Título del aviso:</label>
+                    <input type="text" id="tituloAviso" placeholder="Ej: Busco bajista / Ofrezco estudio de grabación" required>
+                </div>
+
+                <div class="group">
+                    <label for="tipoCat">Categoría:</label>
+                    <select id="tipoCat" required>
+                        <option value="banda">Buscan Músico / Integrante</option>
+                        <option value="sesionista">Sesionistas y Grabación</option>
+                        <option value="tecnico">Técnicos / Sonido / Iluminación</option>
+                        <option value="ofrezco">Ofrezco Servicios / Clases</option>
+                    </select>
+                </div>
+
+                <div class="group">
+                    <label for="zonaAviso">Zona / Departamento:</label>
+                    <input type="text" id="zonaAviso" placeholder="Ej: Gran Mendoza / Valle de Uco" required>
+                </div>
+
+                <div class="group">
+                    <label for="descAviso">Descripción y detalles:</label>
+                    <textarea id="descAviso" placeholder="Detallá qué buscás o qué ofrecés, requisitos y condiciones..." required></textarea>
+                </div>
+
+                <div class="group">
+                    <label for="telAviso">Número de WhatsApp (con característica, sin 0 ni 15):</label>
+                    <input type="text" id="telAviso" placeholder="Ej: 5492611234567" required>
+                </div>
+
+                <button class="action-btn" type="submit" id="btnEnviar">Publicar Aviso</button>
+            </form>
+        </div>
+
+        <div class="footer">
+            Movimiento Independiente de Músicos de Mendoza (MIMM)
+        </div>
+    </div>
+</div>
+
+<script>
+    // URL de tu Google Apps Script
+    const API_URL = "https://script.google.com/macros/s/AKfycbzCpYNJSTtjqkPfQkBm0HkVyfllk-eMnKjY5_pPCswHs-AcRVQY_qVdxHK5AVMa1vFZNQ/exec";
+
+    // Cargar avisos al iniciar la página
+    window.onload = function() {
+        cargarAvisos();
+    };
+
+    function cambiarPestana(pestana) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+        if (pestana === 'ver') {
+            document.querySelectorAll('.tab-btn')[0].classList.add('active');
+            document.getElementById('pestana-ver').classList.add('active');
+        } else {
+            document.querySelectorAll('.tab-btn')[1].classList.add('active');
+            document.getElementById('pestana-publicar').classList.add('active');
+        }
+    }
+
+    function cargarAvisos() {
+        const contenedor = document.getElementById('contenedorAvisos');
+        
+        fetch(API_URL)
+            .then(response => response.json())
+            .then(data => {
+                contenedor.innerHTML = ""; // Limpiar estado de carga
+                
+                if (data.length === 0) {
+                    contenedor.innerHTML = `<div class="empty-state">📭 No hay avisos publicados en este momento.<br>¡Sé el primero en sumar una convocatoria!</div>`;
+                    return;
+                }
+
+                // Invertir para ver los más nuevos primero
+                data.reverse();
+
+                data.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'listing-card';
+                    card.setAttribute('data-cat', item.categoria);
+
+                    let fechaFormateada = "Reciente";
+                    if (item.fecha) {
+                        const d = new Date(item.fecha);
+                        if (!isNaN(d)) {
+                            fechaFormateada = d.toLocaleDateString('es-AR');
+                        }
+                    }
+
+                    const mensajeWa = encodeURIComponent(`Hola, me interesa tu aviso "${item.titulo}" publicado en la bolsa de trabajo del MIMM.`);
+
+                    card.innerHTML = `
+                        <div class="listing-title">${item.titulo}</div>
+                        <div class="listing-meta">
+                            <span>Zona: ${item.zona}</span>
+                            <span>${fechaFormateada}</span>
+                        </div>
+                        <div class="listing-desc">${item.descripcion}</div>
+                        <a href="https://wa.me/${item.whatsapp}?text=${mensajeWa}" class="wa-btn" target="_blank">💬 Contactar por WhatsApp</a>
+                    `;
+
+                    contenedor.appendChild(card);
+                });
+
+                filtrarAvisos();
+            })
+            .catch(error => {
+                console.error("Error al cargar avisos:", error);
+                contenedor.innerHTML = `<div class="empty-state" style="color: #d90429;">⚠️ No se pudieron cargar los avisos en este momento. Intentesé más tarde.</div>`;
+            });
+    }
+
+    function filtrarAvisos() {
+        const seleccion = document.getElementById('filtroCategoria').value;
+        const tarjetas = document.querySelectorAll('.listing-card');
+
+        tarjetas.forEach(card => {
+            const cat = card.getAttribute('data-cat');
+            if (seleccion === 'todos' || cat === seleccion) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
+    function publicarAviso(event) {
+        event.preventDefault();
+
+        const btnEnviar = document.getElementById('btnEnviar');
+        btnEnviar.disabled = true;
+        btnEnviar.innerText = "Publicando en la red...";
+
+        const datos = {
+            titulo: document.getElementById('tituloAviso').value,
+            categoria: document.getElementById('tipoCat').value,
+            zona: document.getElementById('zonaAviso').value,
+            descripcion: document.getElementById('descAviso').value,
+            whatsapp: document.getElementById('telAviso').value
+        };
+
+        fetch(API_URL, {
+            method: "POST",
+            mode: "no-cors", // Necesario para Google Apps Script desde GitHub Pages
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(datos)
+        })
+        .then(() => {
+            alert('¡Aviso publicado con éxito en la base de datos del MIMM!');
+            document.getElementById('formAviso').reset();
+            btnEnviar.disabled = false;
+            btnEnviar.innerText = "Publicar Aviso";
+            
+            cambiarPestana('ver');
+            document.getElementById('filtroCategoria').value = 'todos';
+            
+            // Recargar avisos para ver el nuevo
+            setTimeout(cargarAvisos, 1500);
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            alert('Hubo un error al publicar el aviso. Verificá tu conexión.');
+            btnEnviar.disabled = false;
+            btnEnviar.innerText = "Publicar Aviso";
+        });
+    }
+</script>
+
+</body>
+</html>
