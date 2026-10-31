@@ -255,7 +255,10 @@
         let copiaInvertida = [...facturas].reverse();
         
         copiaInvertida.forEach(fac => {
-            let claseEstado = fac.estado && fac.estado.includes("Emitida") ? "badge-emitida" : "badge-pendiente";
+            let estadoStr = (fac.estado || "").toLowerCase();
+            let esEmitida = estadoStr.includes("emitid") || estadoStr.includes("aprob");
+            let claseEstado = esEmitida ? "badge-emitida" : "badge-pendiente";
+
             contenedor.innerHTML += `
                 <div class="history-card">
                     <strong>Socio:</strong> ${fac.nombre} (DNI: ${fac.dni})<br>
