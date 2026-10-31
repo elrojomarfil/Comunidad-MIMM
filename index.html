@@ -96,7 +96,7 @@
 
         <h3>Solicitar Factura</h3>
 
-        <form id="form-google" method="POST" action="https://script.google.com/macros/s/AKfycbzRcaXGJ49asy_hg9H3lYpx_LrgJaNQr3SuyKKMgzU2iVK_n1f3zpMlckBYP4nc9f86/exec" target="hidden_iframe" onsubmit="procesarEnvioLocal(event)">
+        <form id="form-google" method="POST" action="https://script.google.com/macros/s/AKfycbwAtbevSQEraMzpbwtxbDDCzZoqRUIplTpqySbfpnGf8QUYfBd6FyFfFsFJ0zrFR3GT/exec" target="hidden_iframe" onsubmit="procesarEnvioLocal(event)">
             
             <input type="hidden" name="dni" id="hidden-dni">
             
@@ -147,7 +147,7 @@
 <script>
     let dniActual = "";
     const sociosValidos = ["12345678", "35123456", "40999888"];
-    const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbzRcaXGJ49asy_hg9H3lYpx_LrgJaNQr3SuyKKMgzU2iVK_n1f3zpMlckBYP4nc9f86/exec";
+    const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbwAtbevSQEraMzpbwtxbDDCzZoqRUIplTpqySbfpnGf8QUYfBd6FyFfFsFJ0zrFR3GT/exec";
 
     function verificarSocio() {
         const dni = document.getElementById("dni-input").value.trim();
