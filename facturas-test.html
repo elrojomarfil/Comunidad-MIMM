@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIMM - Módulo de Facturación</title>
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --accent: #2563eb;
+            --bg: #f8fafc;
+            --text: #1e293b;
+        }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+        h2 { color: var(--primary); margin-top: 0; }
+        .form-group { margin-bottom: 16px; }
+        label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 14px; }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        textarea { resize: vertical; height: 80px; }
+        button {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            font-size: 15px;
+        }
+        button:hover { background-color: #1d4ed8; }
+        .hidden { display: none !important; }
+        .alert {
+            padding: 12px;
+            background-color: #fee2e2;
+            color: #991b1b;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+        .history-card {
+            background: #f1f5f9;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--accent);
+            font-size: 14px;
+        }
+        .badge-pendiente { color: #d97706; font-weight: bold; }
+        .badge-emitida { color: #16a34a; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Módulo de Facturación MIMM</h2>
+
+    <!-- PASO 1: Validación de Socio -->
+    <div id="auth-section">
+        <p>Solo pueden facturar a través del MIMM las personas socias.</p>
+        <div id="auth-error" class="alert hidden">DNI no encontrado o socio sin cuota al día.</div>
+        <div class="form-group">
+            <label for="dni-input">Ingresá tu Número de DNI:</label>
+            <input type="number" id="dni-input" placeholder="Ej: 35123456">
+        </div>
+        <button onclick="verificarSocio()">Continuar</button>
+    </div>
+
+    <!-- PASO 2: Panel de Facturación -->
+    <div id="app-section" class="hidden">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <span id="socio-welcome" style="font-weight: bold; color: var(--primary);"></span>
+            <button onclick="cerrarSesion()" style="width: auto; padding: 6px 12px; background: #64748b; font-size: 12px;">Salir</button>
+        </div>
+
+        <h3>Solicitar Factura</h3>
+
+        <form id="form-google" method="POST" action="https://script.google.com/macros/s/AKfycbzRcaXGJ49asy_hg9H3lYpx_LrgJaNQr3SuyKKMgzU2iVK_n1f3zpMlckBYP4nc9f86/exec" target="hidden_iframe" onsubmit="procesarEnvioLocal(event)">
+            
+            <input type="hidden" name="dni" id="hidden-dni">
+            
+            <div class="form-group">
+                <label>Nombre y Apellido del socio:</label>
+                <input type="text" name="nombre" id="fac-nombre" placeholder="Ej: Juan Pérez" required>
+            </div>
+            
+            <div class="form-group">
+                <label>CUIT/CUIL de la persona o institución destinataria:</label>
+                <input type="text" name="cuit" id="fac-cuit" placeholder="Ej: 30-71111111-9" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Detalle de facturación (Trabajo realizado, lugar, fecha, expte., etc.):</label>
+                <textarea name="detalle" id="fac-detalle" placeholder="Ej: Honorarios por show en vivo..." required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Monto total a facturar ($):</label>
+                <input type="number" name="monto" id="fac-monto" placeholder="Ej: 50000" required>
+            </div>
+
+            <div class="form-group">
+                <label>Correo electrónico donde debe ser enviada la factura:</label>
+                <input type="email" name="correo" id="fac-correo" placeholder="Ej: dependencia@solicitante.com" required>
+            </div>
+
+            <button type="submit">Enviar Solicitud</button>
+        </form>
+
+        <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
+
+        <hr style="margin: 30px 0; border: 0; border-top: 1px solid #e2e8f0;">
+
+        <!-- SECCIÓN DE HISTORIAL CON LOS DOS BOTONES -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h3 style="margin: 0;">Mis Solicitudes y Estados</h3>
+            <div>
+                <button onclick="sincronizarHistorial()" style="width: auto; padding: 6px 10px; background: #2563eb; font-size: 11px; margin-right: 5px;">Actualizar Estados</button>
+                <button onclick="limpiarHistorial()" style="width: auto; padding: 6px 10px; background: #ef4444; font-size: 11px;">Borrar Historial</button>
+            </div>
+        </div>
+        <div id="historial-lista">Cargando solicitudes...</div>
+    </div>
+</div>
+
+<script>
+    let dniActual = "";
+    const sociosValidos = ["12345678", "35123456", "40999888"];
+    const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbzRcaXGJ49asy_hg9H3lYpx_LrgJaNQr3SuyKKMgzU2iVK_n1f3zpMlckBYP4nc9f86/exec";
+
+    function verificarSocio() {
+        const dni = document.getElementById("dni-input").value.trim();
+        const errorBox = document.getElementById("auth-error");
+
+        if (sociosValidos.includes(dni)) {
+            dniActual = dni;
+            document.getElementById("hidden-dni").value = dni;
+            errorBox.classList.add("hidden");
+            document.getElementById("auth-section").classList.add("hidden");
+            document.getElementById("app-section").classList.remove("hidden");
+            document.getElementById("socio-welcome").innerText = `¡Hola, Socio (DNI: ${dni})!`;
+            sincronizarHistorial();
+        } else {
+            errorBox.classList.remove("hidden");
+        }
+    }
+
+    function cerrarSesion() {
+        dniActual = "";
+        document.getElementById("app-section").classList.add("hidden");
+        document.getElementById("auth-section").classList.remove("hidden");
+        document.getElementById("dni-input").value = "";
+        document.getElementById("fac-nombre").value = "";
+    }
+
+    function procesarEnvioLocal(event) {
+        const nombre = document.getElementById("fac-nombre").value.trim();
+        const cuit = document.getElementById("fac-cuit").value.trim();
+        const detalle = document.getElementById("fac-detalle").value.trim();
+        const monto = document.getElementById("fac-monto").value.trim();
+        const correo = document.getElementById("fac-correo").value.trim();
+
+        const nuevaFactura = {
+            nombre,
+            dni: dniActual,
+            cuit,
+            detalle,
+            monto,
+            correo,
+            fecha: new Date().toLocaleDateString(),
+            estado: "Pendiente de emisión 🟡"
+        };
+
+        let misFacturas = JSON.parse(localStorage.getItem("mimm_facturas_" + dniActual)) || [];
+        misFacturas.push(nuevaFactura);
+        localStorage.setItem("mimm_facturas_" + dniActual, JSON.stringify(misFacturas));
+
+        setTimeout(() => {
+            document.getElementById("fac-cuit").value = "";
+            document.getElementById("fac-detalle").value = "";
+            document.getElementById("fac-monto").value = "";
+            document.getElementById("fac-correo").value = "";
+            alert("¡Solicitud registrada con éxito!");
+            sincronizarHistorial();
+        }, 800);
+    }
+
+    // Sincronización limpia por Fetch con redirección habilitada (funciona perfecto en servidor web)
+    function sincronizarHistorial() {
+        const contenedor = document.getElementById("historial-lista");
+        contenedor.innerHTML = "<p style='color: #64748b; font-size: 14px;'>Sincronizando con la planilla...</p>";
+
+        fetch(`${URL_SCRIPT}?dni=${dniActual}`, { method: "GET", redirect: "follow" })
+            .then(response => response.json())
+            .then(data => {
+                if (!Array.isArray(data) || data.length === 0) {
+                    let misFacturasLocales = JSON.parse(localStorage.getItem("mimm_facturas_" + dniActual)) || [];
+                    if (misFacturasLocales.length > 0) {
+                        renderizarLista(misFacturasLocales);
+                    } else {
+                        contenedor.innerHTML = "<p style='color: #64748b; font-size: 14px;'>No tenés solicitudes registradas.</p>";
+                    }
+                    return;
+                }
+
+                localStorage.setItem("mimm_facturas_" + dniActual, JSON.stringify(data));
+                renderizarLista(data);
+            })
+            .catch(error => {
+                let misFacturas = JSON.parse(localStorage.getItem("mimm_facturas_" + dniActual)) || [];
+                renderizarLista(misFacturas);
+            });
+    }
+
+    function limpiarHistorial() {
+        if(confirm("¿Estás seguro de borrar el historial guardado en este dispositivo?")) {
+            localStorage.removeItem("mimm_facturas_" + dniActual);
+            cargarHistorialLocalVacio();
+        }
+    }
+
+    function cargarHistorialLocalVacio() {
+        const contenedor = document.getElementById("historial-lista");
+        contenedor.innerHTML = "<p style='color: #64748b; font-size: 14px;'>No tenés solicitudes registradas.</p>";
+    }
+
+    function renderizarLista(facturas) {
+        const contenedor = document.getElementById("historial-lista");
+        if (!facturas || facturas.length === 0) {
+            contenedor.innerHTML = "<p style='color: #64748b; font-size: 14px;'>No tenés solicitudes registradas.</p>";
+            return;
+        }
+
+        contenedor.innerHTML = "";
+        let copiaInvertida = [...facturas].reverse();
+        
+        copiaInvertida.forEach(fac => {
+            let claseEstado = fac.estado && fac.estado.includes("Emitida") ? "badge-emitida" : "badge-pendiente";
+            contenedor.innerHTML += `
+                <div class="history-card">
+                    <strong>Socio:</strong> ${fac.nombre} (DNI: ${fac.dni})<br>
+                    <strong>Destinatario (CUIT):</strong> ${fac.cuit} <br>
+                    <strong>Detalle:</strong> ${fac.detalle} <br>
+                    <strong>Monto:</strong> $${fac.monto} <br>
+                    <strong>Enviar a:</strong> ${fac.correo} <br>
+                    <strong>Fecha:</strong> ${fac.fecha} <br>
+                    <strong>Estado:</strong> <span class="${claseEstado}">${fac.estado}</span>
+                </div>
+            `;
+        });
+    }
+</script>
+
+</body>
+</html>
